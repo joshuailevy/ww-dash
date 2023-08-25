@@ -22,6 +22,6 @@ jobs:
         aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY_JL }}
         application_name: testRun
         environment_name: TestRun-env
-        version_label: v1.0
+        version_label: ${{ github.run_number }}
         region: us-east-1
         deployment_package: deploy.zip
