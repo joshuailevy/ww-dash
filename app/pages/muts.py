@@ -68,5 +68,6 @@ def update_table(input_value):
         locs = countries.value_counts()
         fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs)
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
+        fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 
         return dfCombo.reset_index().to_dict('records'), fig
