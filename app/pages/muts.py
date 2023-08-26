@@ -1,6 +1,8 @@
 import dash
 from dash import dcc, html, Input, Output, callback, dash_table
 import pandas as pd
+import plotly.express as px
+
 
 dash.register_page(__name__)
 
@@ -10,7 +12,7 @@ muts = df['mutName']
 df = df.set_index(['mutName','sample']).drop_duplicates()
 
 df_meta = pd.read_csv('wastewater_ncbi.csv',index_col=0)
-PAGE_SIZE = 50
+
 
 
 layout = html.Div([
@@ -20,11 +22,14 @@ layout = html.Div([
     ]),
     html.Br(),
     html.Div([
+    dcc.Graph(id="graph",config={'displayModeBar': False}),
     dash_table.DataTable(
         id='datatable-paging-page-count',
-        # page_current=0,
-        # page_size=PAGE_SIZE,
+        page_current=0,
+        page_size=20,
         # page_action='custom',
+        # filter_action="native",
+        # filter_options={"placeholder_text": "Filter column..."},
         fixed_columns={'headers': True, 'data': 1},
         style_table={'minWidth': '60%','textAlign': 'center', 'maxWidth': '1000px', 'marginLeft': 'auto', 'marginRight': 'auto'},
         style_cell={'textAlign': 'center'}
@@ -36,9 +41,9 @@ layout = html.Div([
            'marginRight': 'auto'})
 
 
-
 @callback(
     Output('datatable-paging-page-count', 'data'),
+    Output("graph", "figure"), 
     Input(component_id='my-input', component_property='value')
     )
 def update_table(input_value):
@@ -52,6 +57,16 @@ def update_table(input_value):
         if len(input_value.split(','))>1:
             dat = dat.loc[dat.index.value_counts()==len(input_value.split(','))]
 
-        meta = df_meta.loc[dat.index,['collection_date','geo_loc_name','ww_population']]
+        if all([di in df_meta.index for di in dat.index]):
+            meta = df_meta.loc[dat.index,['collection_date','geo_loc_name','ww_population']]
+        else:
+            print("Samples missing from metadata file!")
+            dat = dat.loc[[di for di in dat.index if di in df_meta.index]]
+            meta = df_meta.loc[dat.index,['collection_date','geo_loc_name','ww_population']]
         dfCombo = pd.concat((dat,meta),axis=1).sort_values(by='collection_date',ascending=False)
-        return dfCombo.reset_index().to_dict('records')
+        countries = dfCombo['geo_loc_name'].apply(lambda x:x.split(':')[0])
+        locs = countries.value_counts()
+        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs)
+        fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
+        fig.update(layout_coloraxis_showscale=False) 
+        return dfCombo.reset_index().to_dict('records'), fig
