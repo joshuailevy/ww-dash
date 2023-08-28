@@ -18,8 +18,8 @@ df_meta = pd.read_csv('wastewater_ncbi.csv',index_col=0)
 layout = html.Div([
     html.H6("Enter a mutation of interest:"),
     html.Div([
-        dcc.Input(id='my-input', value='G21608+TCATGCCGCTGT', type='text', debounce = True)
-    ]),
+        dcc.Input(id='my-input', value='G21608+TCATGCCGCTGT', type='text', debounce = True,style={'width':'400px','textAlign': 'center'})
+    ],style={'textAlign': 'center','marginLeft': 'auto', 'marginRight': 'auto'}),
     html.Br(),
     html.Div([
     dcc.Graph(id="graph",config={'displayModeBar': False}),
@@ -66,7 +66,7 @@ def update_table(input_value):
         dfCombo = pd.concat((dat,meta),axis=1).sort_values(by='collection_date',ascending=False)
         countries = dfCombo['geo_loc_name'].apply(lambda x:x.split(':')[0])
         locs = countries.value_counts()
-        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs)
+        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs,color_continuous_scale='Reds')
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 

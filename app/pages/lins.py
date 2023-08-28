@@ -15,8 +15,8 @@ hierarchy = pickle.load(open('hierarchy.pkl','rb'))
 layout = html.Div([
     html.H6("Enter a lineage of interest:"),
     html.Div([
-        dcc.Input(id='my-input2', value='XBB.1.5*', type='text', debounce = True)
-    ]),
+        dcc.Input(id='my-input2', value='XBB.1.5*', type='text', debounce = True,style={'width':'400px','textAlign': 'center'})
+    ],style={'textAlign': 'center','marginLeft': 'auto', 'marginRight': 'auto'}),
     html.Br(),
     html.Div([
     dcc.Graph(id="graph2",config={'displayModeBar': False}),
@@ -82,7 +82,7 @@ def update_table(input_value):
         countries = dfCombo['geo_loc_name'].apply(lambda x:x.split(':')[0])
         locs = countries.value_counts()
         print(locs)
-        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs)
+        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs,color_continuous_scale='Reds')
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 
