@@ -18,8 +18,8 @@ layout = html.Div([
     html.Br(),
     html.Div([
     html.Div(dcc.Graph(id='barplot',config={'displayModeBar': False}),style={
-                            "width": "68%",
-                            "height": "800px",
+                            # "width": "68%",
+                            # "height": "800px",
                             "display": "inline-block",
                             "padding-top": "5px",
                             "padding-left": "1px",
@@ -27,7 +27,7 @@ layout = html.Div([
                             "textAlign": "center",
                             'marginLeft': 'auto',
                             'marginRight': 'auto',
-                            'minWidth': '60%', 'maxWidth': '1000px'}),
+                            }),
     dash_table.DataTable(
         id='datatable-paging-page-count3',
         page_current=0,
@@ -41,8 +41,7 @@ layout = html.Div([
     )
     ],style = {'textAlign': 'center',
            'marginLeft': 'auto',
-           'marginRight': 'auto',
-           'maxWidth': '1000px'})
+           'marginRight': 'auto'})
 ], style = {'textAlign': 'center','marginLeft': 'auto',
            'marginRight': 'auto'})
 
