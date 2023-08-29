@@ -16,6 +16,7 @@ def create_navbar():
                     dbc.DropdownMenuItem("Mutations", href='/muts'),
                     dbc.DropdownMenuItem("Lineages", href='/lins'),
                     dbc.DropdownMenuItem("Samples", href='/samples'),
+                    dbc.DropdownMenuItem("Site", href='/site'),
                 ],
             ),
         ],

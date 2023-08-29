@@ -15,7 +15,7 @@ hierarchy = pickle.load(open('hierarchy.pkl','rb'))
 layout = html.Div([
     html.H6("Enter a lineage of interest:"),
     html.Div([
-        dcc.Input(id='my-input2', value='XBB.1.5*', type='text', debounce = True,style={'width':'400px','textAlign': 'center'})
+        dcc.Input(id='my-input2', value='B.1.1*', type='text', debounce = True,style={'width':'400px','textAlign': 'center'})
     ],style={'textAlign': 'center','marginLeft': 'auto', 'marginRight': 'auto'}),
     html.Br(),
     html.Div([
@@ -27,7 +27,7 @@ layout = html.Div([
         # page_action='custom',
         fixed_columns={'headers': True, 'data': 1},
         style_table={'minWidth': '60%','textAlign': 'center', 'maxWidth': '1000px', 'marginLeft': 'auto', 'marginRight': 'auto'},
-        style_cell={'textAlign': 'center'}
+        style_cell={'textAlign': 'center','font-size':'14px'}
     ),
 ],style = {'textAlign': 'center',
            'marginLeft': 'auto',
@@ -50,45 +50,51 @@ def update_table(input_value):
         if len(input_vals)>0:
             df0 = pd.DataFrame()
             for iV in input_vals:
-                df_ = pd.DataFrame.from_dict(dat[iV],orient='index',columns=['ALT_FREQ'])
+                df_ = pd.DataFrame.from_dict(dat[iV],orient='index',columns=['Frequency'])
+                df0 = df0.round(2)
                 df_.insert(0,'lineage',iV)
                 df0 = pd.concat((df0,df_),axis=0)
             if all([di in df_meta.index for di in df0.index]):
-                meta = df_meta.loc[df0.index,['collection_date','geo_loc_name','ww_population']]
+                meta = df_meta.loc[df0.index,['collection_date','geo_loc_name','ww_population', 'site id']]
             else:
-                print("Samples missing from metadata file!")
+                print("Samples missing from metadata file!", len([di for di in df0.index if di not in df_meta.index]))
                 df0 = df0.loc[[di for di in df0.index if di in df_meta.index]]
-                meta = df_meta.loc[df0.index,['collection_date','geo_loc_name','ww_population']]
-            dfCombo = pd.concat((df0,meta),axis=1).sort_values(by='collection_date',ascending=False).reset_index()
+                meta = df_meta.loc[df0.index,['collection_date','geo_loc_name','ww_population', 'site id']]
+            dfCombo = pd.concat((df0,meta),axis=1)
+            dfCombo = dfCombo.reset_index()
             cols = list(dfCombo.columns)
             cols[0] = 'SRA Accession'
             dfCombo.columns = cols
-            countries = dfCombo['geo_loc_name'].apply(lambda x:x.split(':')[0])
+            dfCombo = dfCombo.sort_values(by=['collection_date','SRA Accession'],ascending=False)
+            dfCombo = dfCombo.rename(columns = {'geo_loc_name':'LOCATION','ww_population':'POPULATION','collection_date':'Collection date'})
+            countries = dfCombo['LOCATION'].apply(lambda x:x.split(':')[0])
             locs = countries.value_counts()
-            print(locs)
-            fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs)
+            fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs,color_continuous_scale='YlOrRd', projection='winkel tripel')
             fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
             fig.update_traces(hovertemplate=None)
             fig.update(layout_coloraxis_showscale=False) 
             return dfCombo.to_dict('records'), fig
     elif input_value in dat.keys():
-        df0 = pd.DataFrame.from_dict(dat[input_value],orient='index',columns=['ALT_FREQ'])
+        df0 = pd.DataFrame.from_dict(dat[input_value],orient='index',columns=['Frequency'])
+        df0 = df0.round(2)
         df0.insert(0,'lineage',input_value)
-        meta = df_meta.loc[df0.index,['collection_date','geo_loc_name','ww_population']]
-        dfCombo = pd.concat((df0,meta),axis=1).sort_values(by='collection_date',ascending=False).reset_index()
+        meta = df_meta.loc[df0.index,['collection_date','geo_loc_name','ww_population', 'site id']]
+        dfCombo = pd.concat((df0,meta),axis=1)
+        dfCombo = dfCombo.reset_index()
         cols = list(dfCombo.columns)
         cols[0] = 'SRA Accession'
         dfCombo.columns = cols
-        countries = dfCombo['geo_loc_name'].apply(lambda x:x.split(':')[0])
+        dfCombo = dfCombo.sort_values(by=['collection_date','SRA Accession'],ascending=False)
+        dfCombo = dfCombo.rename(columns = {'geo_loc_name':'LOCATION','ww_population':'POPULATION','collection_date':'Collection date'})
+        countries = dfCombo['LOCATION'].apply(lambda x:x.split(':')[0])
         locs = countries.value_counts()
-        print(locs)
-        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs,color_continuous_scale='Reds')
+        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs,color_continuous_scale='YlOrRd',projection='winkel tripel')
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 
         return dfCombo.to_dict('records'), fig
     else:
-        fig = px.choropleth([],locationmode='country names')
+        fig = px.choropleth([],locationmode='country names',projection='winkel tripel')
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 

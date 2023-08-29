@@ -11,13 +11,14 @@ df_meta = pd.read_csv('wastewater_ncbi.csv',index_col=0)
 
 
 layout = html.Div([
-    html.H6("Enter a sample of interest:"),
+    html.H6("Enter a sampling site of interest:"),
     html.Div([
-        dcc.Input(id='my-input3', value='SRR25657365,SRR25726416', type='text', debounce = True,style={'width':'400px','textAlign': 'center'})
+        dcc.Input(id='site', value='HibzTsFeNi4e', type='text', debounce = True,style={'width':'400px','textAlign': 'center'})
     ],style={'textAlign': 'center','marginLeft': 'auto', 'marginRight': 'auto'}),
     html.Br(),
     html.Div([
-    html.Div(dcc.Graph(id='barplot',config={'displayModeBar': False}),style={
+    html.P('Note: Freyja results will only be shown for samples with >60 percent genome coverage.'),
+    html.Div(dcc.Graph(id='barplot-site',config={'displayModeBar': False}),style={
                             "width": "68%",
                             "height": "800px",
                             "display": "inline-block",
@@ -29,7 +30,7 @@ layout = html.Div([
                             'marginRight': 'auto',
                             'minWidth': '60%', 'maxWidth': '1000px'}),
     dash_table.DataTable(
-        id='datatable-paging-page-count3',
+        id='datatable-paging-page-count4',
         page_current=0,
         page_size=20,
         # page_action='custom',
@@ -47,38 +48,36 @@ layout = html.Div([
            'marginRight': 'auto'})
 
 @callback(
-    Output('barplot', 'figure'),
-    Input('my-input3', component_property = 'value'))
+    Output('barplot-site', 'figure'),
+    Output('datatable-paging-page-count4', 'data'),
+    Input('site', component_property = 'value'))
 def update_figure(input_value):
     input_value = input_value.replace(' ','')
-    # print(dat[input_value.split(',')[0]])
-    df0 = pd.concat([pd.Series(dat[iv0],name=iv0).to_frame() for iv0 in input_value.split(',')],axis=1).T
+    meta_loc = df_meta[df_meta['site id']==input_value]
+    print(meta_loc)
+    print(meta_loc['collection_date'])
+    # meta_loc = meta_loc[meta_loc.index.isin(dat.keys())]
+    meta_loc = meta_loc.sort_values(by='collection_date')
+    samples = meta_loc.index
+    print(samples)
+    df0 = pd.concat([pd.Series(dat[iv0],name=iv0).to_frame() for iv0 in samples],axis=1).T
     cols = df0.columns
+    print(df0)
     df0 = df0.drop(columns=['Other']) #account for rounding/thresholding
     df0['Other'] = (1.- df0.sum(axis=1)) #account for rounding/thresholding
+    # print(df0)
+    df0['Sample'] = meta_loc['collection_date']
     print(df0)
-    df0['Sample'] = input_value.split(',')
     fig = px.bar(df0,x='Sample',y=df0.columns, width = 600,height=600)
     fig.update_layout(transition_duration=100,title_text='Lineage prevalence estimates (Freyja)',
                       title_x=0.5,showlegend=False, yaxis_title='Lineage prevalence')
+    fig.update_xaxes(tickvals=meta_loc['collection_date'])
 
-    return fig
+    meta_loc = meta_loc.loc[:,['collection_date','geo_loc_name','ww_population','site id']].reset_index()
+    cols = list(meta_loc.columns)
+    cols[0] = 'Sample'
+    meta_loc.columns = cols
+    return fig, meta_loc.to_dict('records')
 
 
-@callback(
-    Output('datatable-paging-page-count3', 'data'),
-    Input(component_id='my-input3', component_property='value')
-    )
-def update_table(input_value):
-    input_value = input_value.replace(' ','')
-    iVs = input_value.split(',')
-    if all([iV in df_meta.index for iV in iVs]):
-        meta = df_meta.loc[iVs,['collection_date','geo_loc_name','ww_population','site id']].reset_index()
-        cols = list(meta.columns)
-        cols[0] = 'Sample'
-        meta.columns = cols
-    else:
-        print("Samples missing from metadata file!")
-
-    return meta.to_dict('records')
 

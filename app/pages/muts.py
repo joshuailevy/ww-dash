@@ -32,7 +32,7 @@ layout = html.Div([
         # filter_options={"placeholder_text": "Filter column..."},
         fixed_columns={'headers': True, 'data': 1},
         style_table={'minWidth': '60%','textAlign': 'center', 'maxWidth': '1000px', 'marginLeft': 'auto', 'marginRight': 'auto'},
-        style_cell={'textAlign': 'center'}
+        style_cell={'textAlign': 'center','font-size':'14px'}
     ),
 ],style = {'textAlign': 'center',
            'marginLeft': 'auto',
@@ -58,15 +58,17 @@ def update_table(input_value):
             dat = dat.loc[dat.index.value_counts()==len(input_value.split(','))]
 
         if all([di in df_meta.index for di in dat.index]):
-            meta = df_meta.loc[dat.index,['collection_date','geo_loc_name','ww_population']]
+            meta = df_meta.loc[dat.index,['collection_date','geo_loc_name','ww_population','site id']]
         else:
             print("Samples missing from metadata file!")
             dat = dat.loc[[di for di in dat.index if di in df_meta.index]]
-            meta = df_meta.loc[dat.index,['collection_date','geo_loc_name','ww_population']]
+            meta = df_meta.loc[dat.index,['collection_date','geo_loc_name','ww_population', 'site id']]
         dfCombo = pd.concat((dat,meta),axis=1).sort_values(by='collection_date',ascending=False)
         countries = dfCombo['geo_loc_name'].apply(lambda x:x.split(':')[0])
+        dfCombo = dfCombo.rename(columns = {"ALT_FREQ": "FREQUENCY",'ALT_DP':'DEPTH','geo_loc_name':'LOCATION','ww_population':'POPULATION','collection_date':'Collection date'})
+        dfCombo["FREQUENCY"] = dfCombo["FREQUENCY"].round(2)
         locs = countries.value_counts()
-        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs,color_continuous_scale='Reds')
+        fig = px.choropleth(locations=locs.index,locationmode='country names',color=locs,color_continuous_scale='YlOrRd',projection='winkel tripel')
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 
