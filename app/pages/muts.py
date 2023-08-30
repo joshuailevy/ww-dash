@@ -6,12 +6,9 @@ import plotly.express as px
 
 dash.register_page(__name__)
 
-filepath = "testData.csv"
-df = pd.read_csv(filepath)
-muts = df['mutName']
-df = df.set_index(['mutName','sample']).drop_duplicates()
+df = pd.read_pickle("testData.pkl")
 
-df_meta = pd.read_csv('wastewater_ncbi.csv',index_col=0)
+df_meta = pd.read_csv('wastewater_ncbi_ALL.csv',index_col=0)
 
 
 

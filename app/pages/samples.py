@@ -7,7 +7,7 @@ import pickle
 dash.register_page(__name__)
 
 dat = pickle.load(open("samples_deconv_dict.pkl",'rb'))
-df_meta = pd.read_csv('wastewater_ncbi.csv',index_col=0)
+df_meta = pd.read_csv('wastewater_ncbi_ALL.csv',index_col=0)
 
 
 layout = html.Div([

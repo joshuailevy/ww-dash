@@ -8,7 +8,7 @@ import plotly.express as px
 dash.register_page(__name__)
 
 dat = pickle.load(open("lineage_dict.pkl",'rb'))
-df_meta = pd.read_csv('wastewater_ncbi.csv',index_col=0)
+df_meta = pd.read_csv('wastewater_ncbi_ALL.csv',index_col=0)
 
 hierarchy = pickle.load(open('hierarchy.pkl','rb'))
 
