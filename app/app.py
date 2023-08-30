@@ -14,7 +14,7 @@ app = Dash(__name__,
         FA621,  # Font Awesome Icons CSS
     ],
     use_pages=True)
-
+server = app.server
 app.layout = dcc.Loading(  # <- Wrap App with Loading Component
     id='loading_page_content',
     children = [
@@ -28,5 +28,5 @@ app.layout = dcc.Loading(  # <- Wrap App with Loading Component
     )
 
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=8050, debug=False)
+    app.run_server(debug=False)
 

@@ -6,5 +6,4 @@ WORKDIR "/app"
 
 RUN pip install -r ../tmp/requirements.txt
 
-EXPOSE 8050
-CMD [ "python", "app.py" ]
+CMD [ "gunicorn", "--workers=4", "--threads=1", "-b 0.0.0.0:8000", "app:server"]
