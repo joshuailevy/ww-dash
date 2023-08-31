@@ -3,6 +3,7 @@ from dash import dcc, html, Input, Output, callback, dash_table
 import pandas as pd
 import plotly.express as px
 import pickle
+from datetime import date
 
 dash.register_page(__name__)
 
@@ -21,13 +22,13 @@ layout = html.Div([
         id='datatable-paging-page-count',
         page_current=0,
         page_size=20,
-        # page_action='custom',
-        # filter_action="native",
-        # filter_options={"placeholder_text": "Filter column..."},
         fixed_columns={'headers': True, 'data': 1},
         style_table={'minWidth': '60%','textAlign': 'center', 'maxWidth': '1000px', 'marginLeft': 'auto', 'marginRight': 'auto'},
         style_cell={'textAlign': 'center','font-size':'14px'}
-    ),
+    ),html.Button("Download CSV", id="btn_csv1"),
+        dcc.Download(id="download-dataframe-csv1"),
+        html.Hr(),
+        html.P(['Mutations are listed in ',html.A("mpileup format.", href = "http://www.htslib.org/doc/samtools-mpileup.html"), ' For indels, the reference base before the mutation is given (e.g., G21608+TCATGCCGCTGT).'])
 ],style = {'textAlign': 'center',
            'marginLeft': 'auto',
            'marginRight': 'auto'})
@@ -38,6 +39,7 @@ layout = html.Div([
 @callback(
     Output('datatable-paging-page-count', 'data'),
     Output("graph", "figure"), 
+    Output("btn_csv1", "n_clicks"),
     Input(component_id='my-input', component_property='value')
     )
 def update_table(input_value):
@@ -66,4 +68,15 @@ def update_table(input_value):
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 
-        return dfCombo.reset_index().to_dict('records'), fig
+        return dfCombo.reset_index().to_dict('records'), fig, 0
+
+@callback(
+    Output("download-dataframe-csv1", "data"),
+    Input("btn_csv1", "n_clicks"),
+    Input('datatable-paging-page-count','data'),
+    Input(component_id='my-input', component_property='value'),
+    prevent_initial_call=True,
+)
+def func(n_clicks,df_,input_value):
+    if n_clicks>0 and n_clicks is not None:
+        return dcc.send_data_frame(pd.DataFrame(df_).to_csv, f"{str(input_value)}_{str(date.today())}.csv")

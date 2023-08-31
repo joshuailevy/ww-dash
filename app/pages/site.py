@@ -4,6 +4,7 @@ import plotly.express as px
 import pandas as pd
 import pickle
 import plotly.graph_objects as go
+from datetime import date
 
 dash.register_page(__name__)
 
@@ -40,7 +41,8 @@ layout = html.Div([
         fixed_columns={'headers': True, 'data': 1},
         style_table={'minWidth': '60%','textAlign': 'center', 'maxWidth': '1000px', 'marginLeft': 'auto', 'marginRight': 'auto'},
         style_cell={'textAlign': 'center','font-size':'14px'}
-    )
+    ), html.Button("Download CSV", id="btn_csv2"),
+        dcc.Download(id="download-dataframe-csv2"),
     ],style = {'textAlign': 'center',
            'marginLeft': 'auto',
            'marginRight': 'auto'})
@@ -50,6 +52,7 @@ layout = html.Div([
 @callback(
     Output('barplot-site', 'figure'),
     Output('datatable-paging-page-count4', 'data'),
+    Output("btn_csv2", "n_clicks"),
     Input('site', component_property = 'value'))
 def update_figure(input_value):
     input_value = input_value.replace(' ','')
@@ -80,7 +83,16 @@ def update_figure(input_value):
     cols = list(meta_loc.columns)
     cols[0] = 'Sample'
     meta_loc.columns = cols
-    return fig, meta_loc.to_dict('records')
+    return fig, meta_loc.to_dict('records'), 0
 
 
-
+@callback(
+    Output("download-dataframe-csv2", "data"),
+    Input("btn_csv2", "n_clicks"),
+    Input('datatable-paging-page-count4','data'),
+    Input(component_id='site', component_property='value'),
+    prevent_initial_call=True,
+)
+def func(n_clicks,df_,input_value):
+    if n_clicks>0 and n_clicks is not None:
+        return dcc.send_data_frame(pd.DataFrame(df_).to_csv, f"{str(input_value)}_{str(date.today())}.csv")

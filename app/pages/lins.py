@@ -3,6 +3,7 @@ from dash import dcc, html, Input, Output, callback, dash_table
 import pandas as pd
 import pickle
 import plotly.express as px
+from datetime import date
 
 
 dash.register_page(__name__)
@@ -28,7 +29,8 @@ layout = html.Div([
         fixed_columns={'headers': True, 'data': 1},
         style_table={'minWidth': '60%','textAlign': 'center', 'maxWidth': '1000px', 'marginLeft': 'auto', 'marginRight': 'auto'},
         style_cell={'textAlign': 'center','font-size':'14px'}
-    ),
+    ),   html.Button("Download CSV", id="btn_csv"),
+        dcc.Download(id="download-dataframe-csv"),
 ],style = {'textAlign': 'center',
            'marginLeft': 'auto',
            'marginRight': 'auto'})
@@ -38,7 +40,8 @@ layout = html.Div([
 
 @callback(
     Output('datatable-paging-page-count2', 'data'),
-    Output("graph2", "figure"), 
+    Output("graph2", "figure"),
+    Output("btn_csv", "n_clicks"),
     Input(component_id='my-input2', component_property='value')
     )
 def update_table(input_value):
@@ -73,7 +76,7 @@ def update_table(input_value):
             fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
             fig.update_traces(hovertemplate=None)
             fig.update(layout_coloraxis_showscale=False) 
-            return dfCombo.to_dict('records'), fig
+            return dfCombo.to_dict('records'), fig, 0
     elif input_value in dat.keys():
         df0 = pd.DataFrame.from_dict(dat[input_value],orient='index',columns=['Frequency'])
         df0 = df0.round(2)
@@ -92,10 +95,22 @@ def update_table(input_value):
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 
-        return dfCombo.to_dict('records'), fig
+        return dfCombo.to_dict('records'), fig, 0
     else:
         fig = px.choropleth([],locationmode='country names',projection='winkel tripel')
         fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0},xaxis={'fixedrange':True},yaxis={'fixedrange':True},dragmode=False,hovermode="x unified")
         fig.update_traces(hovertemplate=None)
         fig.update(layout_coloraxis_showscale=False) 
-        return [], fig
+        return [], fig, 0
+
+@callback(
+    Output("download-dataframe-csv", "data"),
+    Input("btn_csv", "n_clicks"),
+    Input('datatable-paging-page-count2','data'),
+    Input(component_id='my-input2', component_property='value'),
+    prevent_initial_call=True,
+)
+def func(n_clicks,df_,input_value):
+    if n_clicks>0 and n_clicks is not None:
+        return dcc.send_data_frame(pd.DataFrame(df_).to_csv, f"{str(input_value)}_{str(date.today())}.csv")
+
