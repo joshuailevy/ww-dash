@@ -5,5 +5,5 @@ COPY ./app /app
 WORKDIR "/app"
 
 RUN pip install -r ../tmp/requirements.txt
-
-CMD [ "gunicorn", "--workers=4", "--threads=1", "-b :8000", "app:server"]
+EXPOSE 8050
+CMD [ "gunicorn", "--workers=4", "--threads=1", "-b :8050", "app:server"]
