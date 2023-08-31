@@ -2,15 +2,12 @@ import dash
 from dash import dcc, html, Input, Output, callback, dash_table
 import pandas as pd
 import plotly.express as px
-
+import pickle
 
 dash.register_page(__name__)
 
 df = pd.read_pickle("testData.pkl")
-
 df_meta = pd.read_csv('wastewater_ncbi_ALL.csv',index_col=0)
-
-
 
 layout = html.Div([
     html.H6("Enter a mutation of interest:"),
